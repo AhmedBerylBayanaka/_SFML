@@ -1,4 +1,31 @@
-#include <SFML/Graphics.hpp>
+#include <iostream>
+#include "Game.hpp" //akses header class
+
+using namespace sf;
+
+int main() {
+
+  //call the engine!
+  Game game;
+
+	//Game Loop!
+	while (game.getWindowIsOpen())
+	{
+		//Update
+    game.update();
+
+		//Render
+    game.render();
+
+		//Draw game
+
+	}
+
+	return 0;
+}
+
+
+/*#include <SFML/Graphics.hpp>
 #include <time.h>
 using namespace sf;
 
@@ -44,7 +71,9 @@ int main()
 
     Sprite s(t1), background(t2), frame(t3);
 
-    int dx=0; bool rotate=0; int colorNum=1;
+    int dx=0; 
+    bool rotate=0; 
+    int colorNum=1;
     float timer=0,delay=0.3; 
 
     Clock clock;
@@ -70,7 +99,10 @@ int main()
     if (Keyboard::isKeyPressed(Keyboard::Down)) delay=0.05;
 
     //// <- Move -> ///
-    for (int i=0;i<4;i++)  { b[i]=a[i]; a[i].x+=dx; }
+    for (int i=0;i<4;i++)  
+    { 
+      b[i]=a[i]; a[i].x+=dx; 
+    }
     if (!check()) for (int i=0;i<4;i++) a[i]=b[i];
 
     //////Rotate//////
@@ -151,3 +183,4 @@ int main()
 
     return 0;
 }
+*/
