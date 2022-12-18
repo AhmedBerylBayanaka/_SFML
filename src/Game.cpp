@@ -1,29 +1,53 @@
+#include <iostream>
 #include "Game.hpp"
 
 void Game::initVariables()
 {
     this->window = nullptr; //to initiation
 
+        this->endgame = false;
+        this->point = 0;
+        this->enemySpawnTimerMax = 20.f;
+        this->enemySpawnTimer = this->enemySpawnTimerMax;
+        this->maxEnemies = 10;
+        this->mouseHeld = false;
+        this->HP = 20;
+
 }
 
 void Game::initWindow()
 {
-    this->VideoMode.height = 800;
-    this->VideoMode.width  = 600;
+    this->VideoMode.height = 600;
+    this->VideoMode.width  = 800;
 
-    this->window = new sf::RenderWindow(this->VideoMode, "Star Plasma", sf::Style::Titlebar | sf::Style::Close);
+    this->window = new sf::RenderWindow(this->VideoMode, "Deutronopia Won't Get It", sf::Style::Titlebar | sf::Style::Close);
 
     this->window->setFramerateLimit(60);
 }
 
+void Game::initFonts()
+{
+    if(this->font.loadFromFile("Font/HighlandGothicFLF.ttf"))
+    {
+        std::cout << "Failed to Load font" << "\n";
+    }
+}
+
+void Game::initTexts()
+{
+    this->uiText.setFont(this->font);
+    this->uiText.setCharacterSize(24);
+    this->uiText.setFillColor(sf::Color::White);
+    this->uiText.setString("NONE");
+}
 
 void Game::initEnemies()
 {
-    this->enemy.setPosition(0,0);
-    this->enemy.setSize(sf::Vector2f(100.f,100.f));
-    this->enemy.setFillColor(sf::Color::Cyan);
-    this->enemy.setOutlineColor(sf::Color::Green);
-    this->enemy.setOutlineThickness(1.f);
+
+    this->enemy1.setSize(sf::Vector2f(100.f,100.f));
+    this->enemy1.setScale(sf::Vector2f(0.5f, 0.5f));
+    this->enemy1.setFillColor(sf::Color::Yellow);
+
 }
 
 // Constructor
@@ -31,6 +55,9 @@ Game::Game()
 {
    this->initVariables();
    this->initWindow();
+   this->initFonts();
+   this->initTexts();
+   this->initEnemies();
 }
 
 //Deconstructor
@@ -48,6 +75,42 @@ const bool Game::getWindowIsOpen() const
     return this->window->isOpen();
 }
 
+const bool Game::getEndgame() const
+{
+    return this->endgame;
+}
+
+// Functions
+void Game::spawnEnemies()
+{
+    this->enemy1.setPosition(
+        static_cast<float>(rand() % static_cast<int>(this->window->getSize().x - this->enemy1.getSize().x)),
+        0.f
+    );
+
+    //Randomize Type
+    int type = rand() % 2;
+
+    switch(type)
+    {
+        case 0:
+            this->enemy1.setSize(sf::Vector2f(40.f,40.f));
+            this->enemy1.setFillColor(sf::Color(195,70,70));
+            break;
+        case 1:
+            this->enemy1.setSize(sf::Vector2f(80.f,80.f));
+            this->enemy1.setFillColor(sf::Color(79,195,70));
+            break;
+        default:
+            this->enemy1.setSize(sf::Vector2f(100.f,100.f));
+            this->enemy1.setFillColor(sf::Color::White);
+            break;
+    }
+
+    this->enemies.push_back(this->enemy1);
+
+}
+
 void Game::pollEvents()
 {
     //Event polling
@@ -62,22 +125,128 @@ void Game::pollEvents()
 				if (this->ev.key.code == sf::Keyboard::Escape)
 				    this->window->close();
 				break;
+            default :
+                break;
 			}
 		}
 }
 
-// Functions
+void Game::updateMousePos()
+{
+    this->mousePos = sf::Mouse::getPosition(*this->window);
+    this->mousePosView = this->window->mapPixelToCoords(this->mousePos);
+}
+
+void Game::updateText()
+{
+    std::stringstream ss;
+
+    ss << "Points : " << this->point
+        << "Health of Green: " << this->HP;
+
+    this->uiText.setString(ss.str());
+}
+
+void Game::updateEnemies()
+{
+    if(this->enemies.size() < this->maxEnemies )
+    {
+        if(this->enemySpawnTimer >= this->enemySpawnTimerMax)
+        {
+            this->spawnEnemies();
+            this->enemySpawnTimer = 0.f;
+        }
+        else
+            this->enemySpawnTimer += 1.f;
+    }
+
+
+    bool deleted = false;
+    for(int i = 0; i < this->enemies.size(); i++)
+    {
+
+        this->enemies[i].move(0.f,3.f);
+
+        if(this->enemies[i].getPosition().y > this->window->getSize().y)
+        {
+            this->enemies.erase(this->enemies.begin() + i);
+                std:: cout << "Enemies Green Health = " << this->HP << "\n";
+        }
+
+    }
+
+    //delete if clicked
+    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    {
+        if(this->mouseHeld == false)
+        {
+            this->mouseHeld = true;
+            for(int i = 0; i < this->enemies.size(); i++)
+            {
+                if(this->enemies[i].getGlobalBounds().contains(this->mousePosView))
+                {
+                    if(this->enemies[i].getFillColor() == sf::Color::Red)
+                        this->point += 10;
+                    else if (this->enemies[i].getFillColor() == sf::Color::Green)
+                        this->point += 5;
+                    std:: cout << "Score = " << this->point << "\n";
+
+                    deleted =  true;
+                    this->enemies.erase(this->enemies.begin() + i);
+
+                }
+            }
+        }
+        else 
+        {
+            this->mouseHeld = false;
+        }
+    }
+
+}
+
 void Game::update()
 {
     this->pollEvents();
+
+    if(!this->endgame)
+    {
+        this->updateMousePos();
+
+        this->updateText();
+
+        this->updateEnemies();
+    }
+
+    if(this->point >= 100)
+    {
+        this->endgame = true;
+    }
+    
+}
+
+void Game::renderText(sf::RenderTarget& target)
+{
+    target.draw(this->uiText);
+}
+
+void Game::renderEnemies(sf::RenderTarget& target)
+{
+    for(auto &e : this->enemies)
+    {
+        this->window->draw(e);
+    }
+
 }
 
 void Game::render()
 {
-    this->window->clear();
+    this->window->clear(sf::Color(195, 141, 70));
 
     //game drawing
-    this->window->draw(this->enemy);
+    this->renderEnemies(*this->window);
+
+    this->renderText(*this->window);
 
     this->window->display();
 }
