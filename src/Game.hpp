@@ -31,7 +31,7 @@ class Game
         sf::Text uiText;
 
         bool endgame;
-        unsigned point;
+        signed point;
         unsigned HP;
         float enemySpawnTimer;
         float enemySpawnTimerMax;

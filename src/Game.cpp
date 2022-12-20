@@ -11,7 +11,7 @@ void Game::initVariables()
         this->enemySpawnTimer = this->enemySpawnTimerMax;
         this->maxEnemies = 10;
         this->mouseHeld = false;
-        this->HP = 20;
+        this->HP = 1;
 
 }
 
@@ -20,7 +20,7 @@ void Game::initWindow()
     this->VideoMode.height = 600;
     this->VideoMode.width  = 800;
 
-    this->window = new sf::RenderWindow(this->VideoMode, "Deutronopia Won't Get It", sf::Style::Titlebar | sf::Style::Close);
+    this->window = new sf::RenderWindow(this->VideoMode, "Deutronopia", sf::Style::Titlebar | sf::Style::Close);
 
     this->window->setFramerateLimit(60);
 }
@@ -89,7 +89,7 @@ void Game::spawnEnemies()
     );
 
     //Randomize Type
-    int type = rand() % 2;
+    int type = rand() % 6;
 
     switch(type)
     {
@@ -100,6 +100,18 @@ void Game::spawnEnemies()
         case 1:
             this->enemy1.setSize(sf::Vector2f(80.f,80.f));
             this->enemy1.setFillColor(sf::Color(79,195,70));
+            break;
+        case 3:
+            this->enemy1.setSize(sf::Vector2f(50.f,50.f));
+            this->enemy1.setFillColor(sf::Color::Blue);
+            break;
+        case 4:
+            this->enemy1.setSize(sf::Vector2f(20.f,20.f));
+            this->enemy1.setFillColor(sf::Color::Yellow);
+            break;
+        case 5:
+            this->enemy1.setSize(sf::Vector2f(80.f,80.f));
+            this->enemy1.setFillColor(sf::Color::Cyan);
             break;
         default:
             this->enemy1.setSize(sf::Vector2f(100.f,100.f));
@@ -141,8 +153,8 @@ void Game::updateText()
 {
     std::stringstream ss;
 
-    ss << "Points : " << this->point
-        << "Health of Green: " << this->HP;
+    ss << "Points : " << this->point;
+        //<< "Health of Green: " << this->HP
 
     this->uiText.setString(ss.str());
 }
@@ -170,7 +182,7 @@ void Game::updateEnemies()
         if(this->enemies[i].getPosition().y > this->window->getSize().y)
         {
             this->enemies.erase(this->enemies.begin() + i);
-                std:: cout << "Enemies Green Health = " << this->HP << "\n";
+                //std:: cout << "Enemies Health = " << this->HP << "\n";
         }
 
     }
@@ -185,10 +197,17 @@ void Game::updateEnemies()
             {
                 if(this->enemies[i].getGlobalBounds().contains(this->mousePosView))
                 {
-                    if(this->enemies[i].getFillColor() == sf::Color::Red)
+                    if(this->enemies[i].getFillColor() == sf::Color(195,70,70))
                         this->point += 10;
-                    else if (this->enemies[i].getFillColor() == sf::Color::Green)
+                    else if (this->enemies[i].getFillColor() == sf::Color(79,195,70))
                         this->point += 5;
+                    else if (this->enemies[i].getFillColor() == sf::Color::Blue)
+                        this->point -= 5;
+                    else if (this->enemies[i].getFillColor() == sf::Color::Yellow)
+                        this->point -= 6;
+                    else if (this->enemies[i].getFillColor() == sf::Color::Cyan)
+                        this->point -= 7;
+                        
                     std:: cout << "Score = " << this->point << "\n";
 
                     deleted =  true;
